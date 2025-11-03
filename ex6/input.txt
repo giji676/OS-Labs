@@ -1,0 +1,4 @@
+one12 three // 0
+3 asdgG // 2
+asdfg aeefsg // 2
+sadfsef g Ga ae // 2
