@@ -111,6 +111,7 @@ void selectRR(struct process **ready_list, struct process **selected, struct pro
         // b. Copy the ID and arrival time from the selected process.
         // c. Set the new process's remaining time to: (selected's remaining - RR_QUANTUM).
         preempted_cont->ID = (*selected)->ID;
+        preempted_cont->arrival = (*selected)->arrival;
         preempted_cont->remaining = (*selected)->remaining - RR_QUANTUM;
         // d. Cap the selected process's remaining time to RR_QUANTUM.
         (*selected)->remaining = RR_QUANTUM;
