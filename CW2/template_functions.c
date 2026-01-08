@@ -131,16 +131,15 @@ void selectRR(struct process **ready_list, struct process **selected, struct pro
 //   Number of processes completed
 struct process_done *build_process_done_list(FILE *execution_log, int *idle_time);
 int compute_stats(FILE *execution_log, float *stats) {
+    stats[0] = 0;
+    stats[1] = 0;
+    stats[2] = 0;
 	// Instructions:
 	// 1. Read through the execution log line by line
 	// 2. Build a linked list of process_done structs to track completed processes:
 	//    - For each line: if a process_done with this ID exists, update it; otherwise create one.
 	//    - Each process_done node needs to store: the process ID, its arrival time, 
 	//      the total number of time units it executed (burst_time), and when it completed (end_time).
-    stats[0] = 0;
-    stats[1] = 0;
-    stats[2] = 0;
-
     int idle_time = 0;
     struct process_done *node = build_process_done_list(execution_log, &idle_time);
 
@@ -148,29 +147,25 @@ int compute_stats(FILE *execution_log, float *stats) {
     int total_tat = 0;
     int total_wt = 0;
 
+	// 3. After reading the entire log, traverse the linked list to compute statistics
     while (node) {
         int tat = node->end_time - node->arrival + 1; // + 1 because time starts at 0
         total_tat += tat;
         int wt = tat - node->burst_time;
         total_wt += wt;
 
-        node = node->next;
+        struct process_done *next = node->next;
+        free(node);
+        node = next;
         n_proc++;
     }
+    // 4. Store results in the stats array and free all allocated memory for the linked list.
     if (n_proc > 0) {
         stats[0] = (float)total_tat / n_proc;
         stats[1] = (float)total_wt / n_proc;
         stats[2] = idle_time;
     }
-	// 3. After reading the entire log, traverse the linked list to compute statistics
-    // 4. Store results in the stats array and free all allocated memory for the linked list.
     // 5. Return the number of processes completed.
-
-    // Hints:
-    // You can use read_integer() from utils.c to parse the file (returns -1 on EOF):
-    // - Call it twice to get ID and then arrival time.
-    // - Empty lines (CPU idle) will give a return value of 0 on the first call.
-	
 	return n_proc;
 }
 
