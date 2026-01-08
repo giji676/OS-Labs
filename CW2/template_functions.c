@@ -41,8 +41,34 @@ void selectFCFS(struct process **ready_list, struct process **selected) {
 void selectSJF(struct process **ready_list, struct process **selected) {
 	// Instructions:
 	// 1. Find the process in the ready list with the smallest burst time. If there are ties, select the one that arrived earliest (closest to the tail).
+    struct process *curr = *ready_list;
+    struct process *prev = NULL;
+    struct process *smallest_burst = curr;
+    struct process *smallest_burst_prev = NULL;
+
+    while (curr) {
+        if (curr->remaining < smallest_burst->remaining) {
+            smallest_burst = curr;
+            smallest_burst_prev = prev;
+        } else if (curr->remaining == smallest_burst->remaining) {
+            if (curr->arrival < smallest_burst->arrival) {
+                smallest_burst = curr;
+                smallest_burst_prev = prev;
+            }
+        }
+        prev = curr;
+        curr = curr->next;
+    }
+
 	// 2. Remove that process from the ready list.
+    if (smallest_burst_prev) {
+        smallest_burst_prev->next = smallest_burst->next;
+    } else {
+        *ready_list = smallest_burst->next;
+    }
+    
 	// 3. Set *selected to point to that process.
+    *selected = smallest_burst;
 }  
 
 // Scheduling: Round Robin
@@ -58,15 +84,39 @@ void selectSJF(struct process **ready_list, struct process **selected) {
 void selectRR(struct process **ready_list, struct process **selected, struct process **preempted) {
 	// Instructions:
 	// 1. If there is a preempted process, add it at the head of the ready list and clear the preempted pointer (set *preempted = NULL).
+    if (*preempted) {
+        (*preempted)->next = *ready_list;
+        *ready_list = *preempted;
+        *preempted = NULL;
+    }
 	// 2. Select the next process to run from the tail of the ready list (the one that arrived earliest).
+    struct process *curr = *ready_list;
+    struct process *prev = NULL;
+    while (curr->next) {
+        prev = curr;
+        curr = curr->next;
+    }
 	// 3. Remove the selected process from the ready list 
+    if (prev) {
+        prev->next = NULL; // tail
+    } else {
+        *ready_list = NULL;
+    }
 	// 4. Set *selected to point to that process.
+    *selected = curr;
 	// 5. Check if the selected process needs to be preempted, that is, if its remaining time is greater than RR_QUANTUM. If so,
-	//      a. Allocate a new process struct for the preempted continuation.
-	//      b. Copy the ID and arrival time from the selected process.
-	//      c. Set the new process's remaining time to: (selected's remaining - RR_QUANTUM).
-	//      d. Cap the selected process's remaining time to RR_QUANTUM.
-	//      e. Store the new process in *preempted (it will be added to the ready list on the next call).
+    if ((*selected)->remaining > RR_QUANTUM) {
+        // a. Allocate a new process struct for the preempted continuation.
+        struct process *preempted_cont = malloc(sizeof(struct process));
+        // b. Copy the ID and arrival time from the selected process.
+        // c. Set the new process's remaining time to: (selected's remaining - RR_QUANTUM).
+        preempted_cont->ID = (*selected)->ID;
+        preempted_cont->remaining = (*selected)->remaining - RR_QUANTUM;
+        // d. Cap the selected process's remaining time to RR_QUANTUM.
+        (*selected)->remaining = RR_QUANTUM;
+        // e. Store the new process in *preempted (it will be added to the ready list on the next call).
+        *preempted = preempted_cont;
+    }
 }
 
 // Compute statistics from the execution log file
