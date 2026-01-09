@@ -190,7 +190,7 @@ int compute_stats(FILE *execution_log, float *stats) {
 
 struct process_done *build_process_done_list(FILE *execution_log, int *idle_time) {
     struct process_done *head = NULL;
-    int time = 0;
+    int time = 1;
     int pid;
 
     while (1) {
@@ -223,14 +223,14 @@ struct process_done *build_process_done_list(FILE *execution_log, int *idle_time
         if (temp) {
             // process found with the same pid
             temp->burst_time++;
-            temp->end_time = time +1;
+            temp->end_time = time;
         } else {
             // new process
             temp = malloc(sizeof(struct process_done));
             temp->ID = pid;
             temp->arrival = arrival;
             temp->burst_time = 1;
-            temp->end_time = time +1;
+            temp->end_time = time;
             temp->next = head;
             head = temp;
         }
