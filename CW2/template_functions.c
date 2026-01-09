@@ -7,6 +7,10 @@
 //   ready_list: pointer to the head of the ready list
 //   selected: pointer to a pointer to the process selected to run
 void selectFCFS(struct process **ready_list, struct process **selected) {
+    if (!*ready_list) {
+        *selected = NULL;
+        return;
+    }
 	// Instructions:
 	// 1. Find the process in the ready list with the earliest arrival time. Recall that the ready list is sorted Newest (Head) -> Oldest (Tail).
     struct process *curr = *ready_list;
@@ -39,6 +43,10 @@ void selectFCFS(struct process **ready_list, struct process **selected) {
 //   ready_list: pointer to the head of the ready list
 //   selected: pointer to a pointer to the process selected to run
 void selectSJF(struct process **ready_list, struct process **selected) {
+    if (!*ready_list) {
+        *selected = NULL;
+        return;
+    }
 	// Instructions:
 	// 1. Find the process in the ready list with the smallest burst time. If there are ties, select the one that arrived earliest (closest to the tail).
     struct process *curr = *ready_list;
