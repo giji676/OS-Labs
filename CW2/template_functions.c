@@ -82,6 +82,10 @@ void selectSJF(struct process **ready_list, struct process **selected) {
 //       You need to added it back to the ready list before selecting the next process.
 //
 void selectRR(struct process **ready_list, struct process **selected, struct process **preempted) {
+    if (!(*ready_list) && !(*preempted)) {
+        *selected = NULL;
+        return;
+    }
 	// Instructions:
 	// 1. If there is a preempted process, add it at the head of the ready list and clear the preempted pointer (set *preempted = NULL).
     if (*preempted) {
@@ -89,6 +93,12 @@ void selectRR(struct process **ready_list, struct process **selected, struct pro
         *ready_list = *preempted;
         *preempted = NULL;
     }
+
+    if (!(*ready_list)) {
+        *selected = NULL;
+        return;
+    }
+
 	// 2. Select the next process to run from the tail of the ready list (the one that arrived earliest).
     struct process *curr = *ready_list;
     struct process *prev = NULL;
@@ -113,6 +123,7 @@ void selectRR(struct process **ready_list, struct process **selected, struct pro
         preempted_cont->ID = (*selected)->ID;
         preempted_cont->arrival = (*selected)->arrival;
         preempted_cont->remaining = (*selected)->remaining - RR_QUANTUM;
+        preempted_cont->next = NULL;
         // d. Cap the selected process's remaining time to RR_QUANTUM.
         (*selected)->remaining = RR_QUANTUM;
         // e. Store the new process in *preempted (it will be added to the ready list on the next call).
@@ -149,7 +160,7 @@ int compute_stats(FILE *execution_log, float *stats) {
 
 	// 3. After reading the entire log, traverse the linked list to compute statistics
     while (node) {
-        int tat = node->end_time - node->arrival + 1; // + 1 because time starts at 0
+        int tat = node->end_time - node->arrival;
         total_tat += tat;
         int wt = tat - node->burst_time;
         total_wt += wt;
@@ -163,8 +174,8 @@ int compute_stats(FILE *execution_log, float *stats) {
     if (n_proc > 0) {
         stats[0] = (float)total_tat / n_proc;
         stats[1] = (float)total_wt / n_proc;
-        stats[2] = idle_time;
     }
+    stats[2] = idle_time;
     // 5. Return the number of processes completed.
 	return n_proc;
 }
@@ -204,14 +215,14 @@ struct process_done *build_process_done_list(FILE *execution_log, int *idle_time
         if (temp) {
             // process found with the same pid
             temp->burst_time++;
-            temp->end_time = time;
+            temp->end_time = time +1;
         } else {
             // new process
             temp = malloc(sizeof(struct process_done));
             temp->ID = pid;
             temp->arrival = arrival;
             temp->burst_time = 1;
-            temp->end_time = time;
+            temp->end_time = time +1;
             temp->next = head;
             head = temp;
         }
